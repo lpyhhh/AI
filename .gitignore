@@ -1,0 +1,16 @@
+# 排除模型和数据文件
+*.bin
+*.pt
+*.pth
+data/
+dataset/
+
+# 排除缓存和环境
+__pycache__/
+*.cache
+venv/
+env/
+
+# 其他不需要跟踪的文件
+logs/
+output/
