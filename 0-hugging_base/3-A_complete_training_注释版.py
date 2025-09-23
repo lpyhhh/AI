@@ -145,6 +145,22 @@ print(metric.compute())
 '''
 accelerate加速计算类
 导入函数，实例化
+初始化准备 train_dataloader, eval_dataloader, model, optimizer = accelerator.prepare(train_dataloader, eval_dataloader, model, optimizer)
+训练数据设置batch in train_dataloader:
+accelerator.backward(loss)
+
+如何运行
+accelerate config
+accelerate launch train.py
+
 '''
 
-#tesk SST-2数据集使用
+#tesk SST-2数据集使用+
+
+"""
+了解了 Hub 中的数据集
+学习了如何加载和预处理数据集，包括使用动态填充和数据整理器
+实现你自己的模型微调和评估
+实现了一个较为底层的训练循环
+使用 🤗 Accelerate 轻松调整你的训练循环，使其适用于多个 GPU 或 TPU
+"""
