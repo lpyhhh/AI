@@ -65,6 +65,7 @@ from torch.optim import AdamW
 from transformers import get_scheduler
 
 optimizer=AdamW(model.parameters(),lr=5e-5)#模型里所有可训练参数交给 AdamW
+#TrainingArguments 模型所有的参数
 
 num_epochs=3
 num_training_steps=num_epochs*len(train_dataloader)
@@ -140,6 +141,9 @@ for batch in eval_dataloader:
     metric.add_batch(predictions=predictions,references=batch["labels"])
 
 print(metric.compute())
+
+model.save_pretrained("/home/ec2-user/project/AI/0-hugging_base/huggingface_test_model")
+tokenizer.save_pretrained("/home/ec2-user/project/AI/0-hugging_base/huggingface_test_model")
 
 ### 多设备运行
 '''
