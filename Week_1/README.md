@@ -6,5 +6,3 @@
 0-hugging_base：[0-hugging_base](https://huggingface.co/learn/llm-course/zh-CN)
 这是hugging face的基础模型介绍课程：  
 该课程大概讲的内容为：直接使用包装好的库，进行微调和使用。同时也能了解如何使用hugging face。
-
-学习路线2： 
