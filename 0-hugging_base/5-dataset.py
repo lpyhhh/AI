@@ -95,11 +95,11 @@ def tokenize_and_split(example):
 tokenized_dataset =drug_dataset.map(tokenize_and_split,batched=True)
 
 #2.9 数据格式转化
-"""
+'''
 Dataset.set_format() 展示方式
 ds[:] 切片，数据底层改变
 Dataset.from_pandas(df) 转为Dataset
-"""
+'''
 #计算 condition 列中不同类别的分布
 train_df = drug_dataset["train"][:]
 frequencies = (
@@ -118,3 +118,49 @@ drug_dataset_clean["test"]=drug_dataset["test"]
 
 #2.11 保存数据集 save_to_disk to_csv to_json ，读取load_from_disk
 drug_dataset_clean.save_to_disk("目录")
+
+
+### 3 大数据分析 内存映射，流式处理
+
+# pip install zstandard psutil
+from datasets import load_dataset,DownloadConfig
+from datasets import config
+config.HF_DATASETS_CACHE = "/home/ec2-user/project/lpy"
+"""
+# 打开 ~/.bashrc 或 ~/.zshrc，在最后追加
+cat >> ~/.bashrc <<'EOF'
+export HF_HOME=/home/ec2-user/project/lpy
+export HF_DATASETS_CACHE=$HF_HOME/datasets
+export TRANSFORMERS_CACHE=$HF_HOME/models
+export TOKENIZERS_PARALLELISM=false
+EOF
+
+source ~/.bashrc
+
+python -c "
+import os, datasets, transformers
+print('HF_HOME              :', os.environ.get('HF_HOME'))
+print('HF_DATASETS_CACHE    :', datasets.config.HF_DATASETS_CACHE)
+print('TRANSFORMERS_CACHE   :', transformers.utils.default_cache_path)
+"
+"""
+
+data_files = "https://huggingface.co/datasets/casinca/PUBMED_title_abstracts_2019_baseline/resolve/main/PUBMED_title_abstracts_2019_baseline.jsonl.zst"
+pubmed_dataset_streamed=load_dataset("json",data_files=data_files,split="train",
+                            download_config=DownloadConfig(delete_extracted=True),  # (optional arg)using DownloadConfig to save HD space
+                            streaming=True
+)
+
+#3.2 流式处理 load_daset( streaming=True)
+next(iter(pubmed_dataset_streamed))
+#处理时，要符合规范，一个个处理
+from transformers import AutoTokenizer
+tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
+tokenized_dataset=pubmed_dataset_streamed.map(lambda x:tokenizer(x["text"]),batched=True)
+
+#其实写法和之前一样，只不过输出和查看都变成迭代的方式
+
+#打乱数据
+shuffled_dataset=pubmed_dataset_streamed.shuffle(buffer_size=10000,seed=42)
+train_dataset = shuffled_dataset.skip(1000) #跳过前1000
+validation_dataset = shuffled_dataset.take(1000)
