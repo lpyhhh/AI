@@ -18,7 +18,7 @@
 | 日 | 任务 | 预计时长 | 交付物 |
 |---|---|---|---|
 | Day1 | 精读 [The Illustrated Transformer](https://jalammar.github.io/illustrated-transformer/) 博客，或者[知乎大神](https://zhuanlan.zhihu.com/p/75591049) + 做笔记 | 2h | 笔记.md |
-| Day2 | 通读《动手学深度学习》Transformer 章节，推导 Self-Attention 公式 | 2h | 手写推导图 |
+| Day2 | ([代码阅读](https://datawhalechina.github.io/learn-nlp-with-transformers/#/)) ([视频讲解](https://space.bilibili.com/3493292524178069?spm_id_from=333.788.upinfo.head.click)) | 2h | 手写推导图 |
 | Day3 | 用 PyTorch 实现 **Scaled Dot-Product Attention** + Mask 单元测试 | 3h | attention.py + 单元测试 |
 | Day4 | 实现 **Multi-Head Attention** 与 **Positional Encoding**；组装 **Encoder Block** | 3h | encoder_block.py |
 | Day5 | 实现 **Feed-Forward + LayerNorm + Residual**；堆叠 N 层 Encoder；构建分类头 | 3h | mini_transformer.py |
