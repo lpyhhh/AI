@@ -13,6 +13,16 @@ from torch import device
 from torch.autograd import Variable
 from datasets import load_dataset
 
+#这些是超参数，一般是用于一个文件保存
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+BATCH   = 128
+MAXLEN  = 512
+D_MODEL = 128
+NHEAD   = 4
+NUM_CLS = 2
+EPOCHS  = 3
+
+
 ########## 数据
 imdb=load_dataset("imdb")
 train_data=imdb['train']
@@ -22,7 +32,11 @@ test_data=imdb['test']
 ########## 清洗
 
 ########## 构造输入
-tokenizer = get_tokenizer("basic_english")
+tokenizer = get_tokenizer("basic_english") #创建分词器 一句话分几个段落
+
+
+
+########## 模型
 
 class Embedding(nn.Module):
     def __init__(self, d_model,vocab):
@@ -111,7 +125,6 @@ class MultiHeadedAttention(nn.Module):
         x=x.transpose(1,2).contiguous().view(batch_size,-1,self.head,*self.d_model)
         return self.linears[-1](x)
 
-########## 模型
 class PositionwiseFeedForward(nn.Module):
     def __init__(self, d_model,d_ff,dropout=0.1):
         super(PositionwiseFeedForward,self).__init__()

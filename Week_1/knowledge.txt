@@ -1,0 +1,7 @@
+tokenizer = get_tokenizer("basic_english")
+https://blog.csdn.net/qq_38853948/article/details/108966346
+
+yield的函数则返回一个可迭代的 generator（生成器）对象，你可以使用for循环或者调用next()方法遍历生成器对象来提取结果
+
+build_vocab_from_iterator 给分好的词，加上分段符号
+
