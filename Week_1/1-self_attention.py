@@ -32,9 +32,19 @@ test_data=imdb['test']
 ########## 清洗
 
 ########## 构造输入
+
+#token句子 函数定义，定义 分隔符标记
 tokenizer = get_tokenizer("basic_english") #创建分词器 一句话分几个段落
+def yield_tokens():
+    for label,text in IMDB(split="train"):
+        yield tokenizer(text)
+vocab = build_vocab_from_iterator(yield_tokens(),specials=["<pad>","<unk>"])
+vocab.set_default_index(vocab["<unk>"])
+PAD_IDX = vocab["<pad>"]
 
-
+#编码句子
+def encode():
+    return vocab(tokenizer(text))[:MAXLEN]
 
 ########## 模型
 
