@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+#Successfully installed cmake-4.1.0 lit-18.1.8 nvidia-cublas-cu11-11.10.3.66 nvidia-cuda-cupti-cu11-11.7.101 nvidia-cuda-nvrtc-cu11-11.7.99 nvidia-cuda-runtime-cu11-11.7.99 nvidia-cudnn-cu11-8.5.0.96 nvidia-cufft-cu11-10.9.0.58 nvidia-curand-cu11-10.2.10.91 nvidia-cusolver-cu11-11.4.0.1 nvidia-cusparse-cu11-11.7.4.91 nvidia-nccl-cu11-2.14.3 nvidia-nvtx-cu11-11.7.91 torch-2.0.1 torchdata-0.6.1 torchtext-0.15.2 triton-2.0.0
 import collections
 import os
 import random
@@ -11,7 +12,9 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset, TensorDataset
 from torch import device
 from torch.autograd import Variable
+#以下，是根据流程引用包
 from datasets import load_dataset
+from torchtext.data.utils import get_tokenizer
 
 #这些是超参数，一般是用于一个文件保存
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -32,19 +35,10 @@ test_data=imdb['test']
 ########## 清洗
 
 ########## 构造输入
-
 #token句子 函数定义，定义 分隔符标记
-tokenizer = get_tokenizer("basic_english") #创建分词器 一句话分几个段落
-def yield_tokens():
-    for label,text in IMDB(split="train"):
-        yield tokenizer(text)
-vocab = build_vocab_from_iterator(yield_tokens(),specials=["<pad>","<unk>"])
-vocab.set_default_index(vocab["<unk>"])
-PAD_IDX = vocab["<pad>"]
+tokenizer=get_tokenizer("basic_english")
+#对训练数据，进行分词
 
-#编码句子
-def encode():
-    return vocab(tokenizer(text))[:MAXLEN]
 
 ########## 模型
 
