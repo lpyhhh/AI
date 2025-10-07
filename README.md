@@ -9,7 +9,7 @@
 
 ## 学习路线2：生物模型构建以及测试
 
-### Week2： Transformer理解  
+### Week1： Transformer理解  
 时间：**七天**
 - 从零手写出 **最小可运行 Transformer**
 - 深入理解 **Self-Attention、Multi-Head Attention、Feed-Forward、Positional Encoding** 原理与实现细节
@@ -19,9 +19,13 @@
 1 搞通流程-ipynb  
 2 自己复现-py
 
-### Week1： 理解并使用BERT/GPT模型，微调  
+### Week2： 理解并使用BERT/GPT模型，微调  
 时间：**七天**
-- 理解：理解 **masked language model（MLM）和 autoregressive LM**
+- 理解：**masked language model（MLM）和 autoregressive LM**
 - 微调：HuggingFace 进行 BERT 微调，完成**文本分类任务（如 IMDB）**
 - 对比两个分类任务，encoder和decoder的不同
-- 阅读两篇论文**BERT/GPT**
+- 阅读两篇论文**BERT/GPT**  
+相关资料：  
+1 [BERT基础知识](https://datawhalechina.github.io/learn-nlp-with-transformers/#/)
+2 [代码](https://chatgpt.com/c/68b6f63c-009c-832a-8d3f-26bd1346e7a6)[BERT/GPT 模型的具体实现方法]
+论文
