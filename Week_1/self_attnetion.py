@@ -201,9 +201,10 @@ class Decoder(nn.Module):
             x=layer(x,memory,source_mask,target,mask)
             return self.norm(x)
     
-#总
+#总 把所有的模块，串联起来到一个包中。
 class EncoderDecoder(nn.Module):
     def __init__(self,encoder,decoder,source_embed,target_embed,generator):
+        #source_embed,target_embed 是emb后，输入到encoder和decoder的数据
         super(EncoderDecoder,self).__init__()
 
         self.encoder=encoder
@@ -216,10 +217,10 @@ class EncoderDecoder(nn.Module):
         return self.decode(self.encode(source,source_mask),source_mask,target,target_mask)
 
     def encode(self,source,source_mask):
-        return self.encoder(self,src_embed(source),source_mask) #x mask
+        return self.encoder(self.src_embed(source),source_mask) #x mask
     
     def decode(self,memory,source_mask,target,target_mask):
-        return self.decoder(self,tgt_embed(target),memory,source_mask,target_mask)
+        return self.decoder(self.tgt_embed(target),memory,source_mask,target_mask)
 
 # 输出层linear softmax
 class Generator(nn.Module):
@@ -232,6 +233,7 @@ class Generator(nn.Module):
 
 #全流程
 def make_model(source_vocab,target_vocab,N=6,d_model=512,d_ff=2048,head=8,dropout=0.1):
+    #输入源和目标 句子长度
     c=copy.deepcopy
 
     position=PositionalEncoding(d_model,dropout)
@@ -249,8 +251,8 @@ def make_model(source_vocab,target_vocab,N=6,d_model=512,d_ff=2048,head=8,dropou
             nn.init.xavier_uniform(p)
     return model
 
-########## 流程
+########## 4流程
 
-########## 训练
+########## 5训练
 
-########## 测试
+########## 6微调
