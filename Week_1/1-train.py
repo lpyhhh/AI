@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import collections
 import os
 import random
@@ -11,10 +10,11 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset, TensorDataset
 from torch import device
 from torch.autograd import Variable
-#一下是根据流程引用包
+#以下，是根据流程引用包
 from datasets import load_dataset
 from torchtext.data.utils import get_tokenizer
 from torchtext.vocab import *
+from self_attnetion import make_model
 
 #这些是超参数，一般是用于一个文件保存
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
