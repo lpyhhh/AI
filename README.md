@@ -26,6 +26,6 @@
 - 对比两个分类任务，encoder和decoder的不同
 - 阅读两篇论文**BERT/GPT**  
 相关资料：  
-1 [BERT基础知识](https://datawhalechina.github.io/learn-nlp-with-transformers/#/)
+1 [BERT基础知识](https://datawhalechina.github.io/learn-nlp-with-transformers/#/)  
 2 [代码](https://chatgpt.com/c/68b6f63c-009c-832a-8d3f-26bd1346e7a6)[BERT/GPT 模型的具体实现方法]
 论文
