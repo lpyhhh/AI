@@ -1,5 +1,0 @@
-模型的模式
-model.train()
-model.eval() #推理，直接使用
-
-model.generate() 是 Hugging Face 库中用于文本生成的专用函数
