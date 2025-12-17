@@ -1,32 +1,6 @@
 # ABO（AI+BIO）
-这是一个AI+BIO基础流程学习路线，也就是用AI基础模型应用到生物行业。  
-本仓库，默认你有**数学（微积分，概论，现代）基础知识**，考过研的那种。同时，看过**吴恩达老师的基础机器学习线性和非线性回归基础知识**。  
-本仓库的学习目标：使大部分同学，可以根据自己生物方面的需求，随意挑选模型进行微调并达到自己目标。（比如说：训练一个model，用来分辨该基因组是什么病毒序列。）
-
-## 学习路线1:  Base  
-0-hugging_base：[0-hugging_base](https://huggingface.co/learn/llm-course/zh-CN)
-这是hugging face的基础模型介绍课程：  
-该课程大概讲的内容为：直接使用包装好的库，进行微调和使用。同时也能了解如何使用hugging face。
-
-## 学习路线2：生物模型构建以及测试
-
-### Week1： Transformer理解  
-时间：**七天**
-- 从零手写出 **最小可运行 Transformer**
-- 深入理解 **Self-Attention、Multi-Head Attention、Feed-Forward、Positional Encoding** 原理与实现细节
-- 在 **IMDB 二分类任务**上完成训练并验证效果，acc ≈ 0.9+
-
-我的学习方法：  
-1 搞通流程-ipynb  
-2 自己复现-py
-
-### Week2： 理解并使用BERT/GPT模型，微调  
-时间：**七天**
-- 理解：**masked language model（MLM）和 autoregressive LM**
-- 微调：HuggingFace 进行 BERT 微调，完成**文本分类任务（如 IMDB）**
-- 对比两个分类任务，encoder和decoder的不同
-- 阅读两篇论文**BERT/GPT**  
-相关资料：  
-1 [BERT基础知识](https://datawhalechina.github.io/learn-nlp-with-transformers/#/)  
-2 [代码](https://chatgpt.com/c/68b6f63c-009c-832a-8d3f-26bd1346e7a6)[BERT/GPT 模型的具体实现方法]
-论文
+这个仓库的初衷，首先是我本人对AI和大模型非常感兴趣。也喜欢每天一壶茶，完成大模型在不同领域的部署和应用。但我深知，我一个双非硕士生的能力有限，不能在AI领域的算法创新性有自己的贡献。因此只能通过这种方式进入到AI领域。如果这个仓库能帮助到和我一样的AI爱好者。足矣。
+## 学习阶段
+目录： ./study  
+目的：应用层面，打造AI+BIO的应用。DeepSeek思考需求，ESB2具体执行。  
+Week1：用hugging face的模型基于自己的数据集处理成模型需要的数据集。

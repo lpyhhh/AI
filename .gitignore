@@ -2,6 +2,9 @@
 *.bin
 *.pt
 *.pth
+*.h5
+*.ckpt
+*.lock
 data/
 dataset/
 
