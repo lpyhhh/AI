@@ -2,7 +2,7 @@
 # encoding: utf-8
 '''
 实现随机拆分 .fa 文件为训练集、验证集和测试集的功能。
-#python ./src/split_fasta.py --input_csv /home/ec2-user/project/AI/Study/Week1/data/output.csv --output_train /home/ec2-user/project/AI/Study/Week1/data/train.csv --output_val /home/ec2-user/project/AI/Study/Week1/data/val.csv --output_test /home/ec2-user/project/AI/Study/Week1/data/test.csv
+#python Study/Week1/src/1.2-split_fasta.py --input_csv /Users/pyl/Desktop/AI/output.csv --output_train /Users/pyl/Desktop/AI/train.csv --output_val /Users/pyl/Desktop/AI/val.csv --output_test /Users/pyl/Desktop/AI/test.csv
 '''
 
 import os
@@ -23,7 +23,7 @@ def split_fasta_file(input_csv, output_train, output_val, output_test, train_rat
         val_ratio (float): 验证集的比例。
         test_ratio (float): 测试集的比例。
     """
-    assert abs(train_ratio + val_ratio + test_ratio - 1.0) < 1e-6, "比例之和必须为 1。"
+    assert abs(train_ratio + val_ratio + test_ratio - 1.0) < 1e-6 #比例之和必须为 1。 判断一个表达式，在表达式条件为 false 的时候触发异常
 
     # 读取 CSV 文件中的所有行
     with open(input_csv, 'r', encoding='utf-8') as csvfile:
@@ -35,18 +35,18 @@ def split_fasta_file(input_csv, output_train, output_val, output_test, train_rat
     random.seed(42)
     random.shuffle(rows)
 
-    # 计算拆分索引
+    # 计算拆分索引。 也就是给三个数据集，放入他们的索引行，然后拆分数据行
     total_rows = len(rows)
     train_end = int(total_rows * train_ratio)
     val_end = train_end + int(total_rows * val_ratio)
 
     # 拆分数据行
-    train_rows = rows[:train_end]
+    train_rows = rows[:train_end] # 这里 存的是：每行数据内容
     val_rows = rows[train_end:val_end]
     test_rows = rows[val_end:]
 
     # 将拆分后的数据写入对应的 CSV 文件
-    for output_csv, split_rows in zip(
+    for output_csv, split_rows in zip( # split_rows就是数据内容
         [output_train, output_val, output_test],
         [train_rows, val_rows, test_rows]
     ):
