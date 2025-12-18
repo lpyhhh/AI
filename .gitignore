@@ -5,7 +5,7 @@
 *.h5
 *.ckpt
 *.lock
-data/
+*.json
 dataset/
 
 # 排除缓存和环境
