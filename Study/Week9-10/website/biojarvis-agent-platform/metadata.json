@@ -1,0 +1,5 @@
+{
+  "name": "BioJarvis Agent Platform",
+  "description": "A high-performance web interface for a Biological AI Agent, integrating ESM-2 LoRA fine-tuned models and LLM reasoning for protein analysis.",
+  "requestFramePermissions": []
+}

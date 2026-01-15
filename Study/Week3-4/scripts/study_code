@@ -1,0 +1,312 @@
+我要学会写代码，这是我已经成功的代码，请你根据代码生成骨架，我来填充内容。用这种方法来学习。
+# ================= 0. 配置与路径 =================
+
+
+
+
+
+# ================= 1. 数据处理 =================
+
+print("Loading datasets...")
+
+
+
+# ================= 2. 模型导入 =================
+
+
+
+# ================= 3. 微调数据 =================
+
+
+
+# ================= 4. 训练与评估 =================
+
+我分成这几个模块，你给我写注释，我来写内容
+
+
+
+
+#!/usr/bin/env python3
+"""
+ESM-2 LoRA 微调训练器 (类封装版)
+功能：封装了数据加载、模型构建、LoRA配置、训练循环与绘图
+作者：BioAI Engineer
+"""
+
+import os
+import sys
+import argparse
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import torch
+from Bio import SeqIO
+from datasets import Dataset
+from sklearn.metrics import accuracy_score, f1_score, matthews_corrcoef
+from transformers import (
+    EsmTokenizer,
+    EsmForSequenceClassification,
+    TrainingArguments,
+    Trainer,
+    DataCollatorWithPadding
+)
+from peft import LoraConfig, get_peft_model, TaskType
+
+class BioTrainer:
+    def __init__(self, args):
+        """
+        初始化训练器
+        Args:
+            args: 由 argparse 解析出来的参数对象
+        """
+        self.args = args
+        self._setup_directories()
+        
+        # 加载 Tokenizer (通常在初始化时加载，因为数据处理需要它)
+        print(f"[Init] Loading tokenizer: {args.model_name}")
+        self.tokenizer = EsmTokenizer.from_pretrained(args.model_name)
+        
+        # 占位符，将在后续步骤填充
+        self.train_dataset = None
+        self.val_dataset = None
+        self.model = None
+
+    def _setup_directories(self):
+        """私有方法：创建必要的输出目录"""
+        os.makedirs(self.args.output_dir, exist_ok=True)
+        os.makedirs(self.args.log_dir, exist_ok=True)
+
+    # ================= 1. 数据处理 =================
+    def load_datasets(self):
+        """读取 FASTA 并构建 Dataset 对象"""
+        print("[Data] Loading datasets...")
+        self.train_dataset = self._parse_fasta(self.args.train_path)
+        self.val_dataset = self._parse_fasta(self.args.val_path)
+        
+        # 执行分词
+        self._tokenize_datasets()
+
+    def _parse_fasta(self, file_path):
+        """读取 FASTA 文件解析为 Dataset"""
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"File not found: {file_path}")
+            
+        sequences = []
+        labels = []
+        for record in SeqIO.parse(file_path, "fasta"):
+            sequences.append(str(record.seq))
+            # 标签逻辑：POS=1, NEG=0
+            if 'POS' in record.id:
+                labels.append(1)
+            elif 'NEG' in record.id:
+                labels.append(0)
+            else:
+                labels.append(0) # 默认为负
+        
+        return Dataset.from_dict({'sequence': sequences, 'label': labels})
+
+    # ================= 3. 微调数据 (Tokenization) =================
+    def _tokenize_datasets(self):
+        """内部方法：对数据进行分词和格式化"""
+        print("[Data] Tokenizing...")
+        
+        def tokenize_function(examples):
+            return self.tokenizer(
+                examples["sequence"], 
+                truncation=True, 
+                max_length=self.args.max_length
+            )
+
+        # 批量处理
+        self.train_dataset = self.train_dataset.map(tokenize_function, batched=True)
+        self.val_dataset = self.val_dataset.map(tokenize_function, batched=True)
+
+        # 格式转换
+        self._format_dataset(self.train_dataset)
+        self._format_dataset(self.val_dataset)
+
+    def _format_dataset(self, dataset):
+        """重命名列并设置 Tensor 格式"""
+        if "label" in dataset.column_names:
+            dataset = dataset.rename_column("label", "labels")
+        dataset.set_format("torch", columns=["input_ids", "attention_mask", "labels"])
+        return dataset
+
+    # ================= 2. 模型导入与 LoRA 配置 =================
+    def setup_model(self):
+        """加载基座模型并应用 LoRA"""
+        print(f"[Model] Loading base model: {self.args.model_name}")
+        
+        model = EsmForSequenceClassification.from_pretrained(
+            self.args.model_name,
+            num_labels=2,
+            cache_dir=self.args.cache_dir
+        )
+
+        print(f"[Model] Applying LoRA (rank={self.args.lora_rank})...")
+        lora_config = LoraConfig(
+            r=self.args.lora_rank,
+            lora_alpha=self.args.lora_alpha,
+            target_modules=["query", "key", "value"], # ESM 常用 target
+            lora_dropout=self.args.lora_dropout,
+            bias="none",
+            task_type=TaskType.SEQ_CLS
+        )
+
+        self.model = get_peft_model(model, lora_config)
+        self.model.print_trainable_parameters()
+
+    # ================= 4. 训练与评估 =================
+    def compute_metrics(self, eval_pred):
+        """计算评估指标"""
+        logits, labels = eval_pred
+        predictions = np.argmax(logits, axis=-1)
+        return {
+            "mcc": matthews_corrcoef(labels, predictions),
+            "f1": f1_score(labels, predictions),
+            "acc": accuracy_score(labels, predictions)
+        }
+
+    def train(self):
+        """执行训练主循环"""
+        if self.model is None:
+            raise ValueError("Model not initialized. Call setup_model() first.")
+
+        training_args = TrainingArguments(
+            output_dir=self.args.output_dir,
+            logging_dir=self.args.log_dir,
+            report_to="tensorboard",
+            eval_strategy="epoch",
+            save_strategy="epoch",
+            save_total_limit=3,
+            learning_rate=self.args.learning_rate,
+            per_device_train_batch_size=self.args.batch_size,
+            gradient_accumulation_steps=self.args.grad_accum,
+            per_device_eval_batch_size=self.args.batch_size,
+            fp16=True, # 开启混合精度
+            num_train_epochs=self.args.epochs,
+            weight_decay=0.01,
+            load_best_model_at_end=True,
+            metric_for_best_model="f1",
+            logging_steps=10,
+        )
+
+        trainer = Trainer(
+            model=self.model,
+            args=training_args,
+            train_dataset=self.train_dataset,
+            eval_dataset=self.val_dataset,
+            tokenizer=self.tokenizer,
+            data_collator=DataCollatorWithPadding(tokenizer=self.tokenizer),
+            compute_metrics=self.compute_metrics,
+        )
+
+        # 检查断点续训
+        last_checkpoint = self._find_last_checkpoint()
+        
+        print("\n" + "="*30)
+        print("Starting Training...")
+        trainer.train(resume_from_checkpoint=last_checkpoint)
+        
+        # 保存
+        final_path = os.path.join(self.args.output_dir, "final_lora_model")
+        trainer.save_model(final_path)
+        print(f"Model saved to {final_path}")
+
+        # 绘图
+        self._plot_history(trainer.state.log_history)
+
+    def _find_last_checkpoint(self):
+        """检测是否存在断点"""
+        if os.path.isdir(self.args.output_dir):
+            checkpoints = [d for d in os.listdir(self.args.output_dir) if d.startswith("checkpoint")]
+            if checkpoints:
+                checkpoints.sort(key=lambda x: int(x.split("-")[1]))
+                ckpt_path = os.path.join(self.args.output_dir, checkpoints[-1])
+                print(f"Resuming from checkpoint: {ckpt_path}")
+                return ckpt_path
+        return None
+
+    def _plot_history(self, log_history):
+        """绘制训练曲线 (包含之前的清洗逻辑)"""
+        print("Plotting training curves...")
+        df = pd.DataFrame(log_history)
+        
+        # 清洗逻辑：移除重跑前的旧日志
+        if len(df) > 1 and 'epoch' in df.columns:
+            restart_points = df[df['epoch'].diff() < 0].index.tolist()
+            if restart_points:
+                df = df.iloc[restart_points[-1]:].reset_index(drop=True)
+
+        train_logs = df[df['loss'].notna() & df['eval_loss'].isna()]
+        eval_logs = df[df['eval_loss'].notna()]
+        
+        if len(train_logs) == 0: 
+            return
+
+        plt.figure(figsize=(12, 5))
+        
+        # Loss
+        plt.subplot(1, 2, 1)
+        plt.plot(train_logs['epoch'], train_logs['loss'], label='Train Loss')
+        if not eval_logs.empty:
+            plt.plot(eval_logs['epoch'], eval_logs['eval_loss'], label='Val Loss')
+        plt.title('Loss')
+        plt.legend()
+        
+        # Metrics
+        plt.subplot(1, 2, 2)
+        if not eval_logs.empty and 'eval_f1' in eval_logs:
+            plt.plot(eval_logs['epoch'], eval_logs['eval_f1'], label='F1')
+            plt.plot(eval_logs['epoch'], eval_logs['eval_mcc'], label='MCC')
+            plt.title('Metrics')
+            plt.legend()
+            
+        save_path = os.path.join(self.args.output_dir, "training_curves.png")
+        plt.tight_layout()
+        plt.savefig(save_path)
+        print(f"Curves saved to {save_path}")
+
+# ================= 0. 程序入口与配置 =================
+def parse_args():
+    parser = argparse.ArgumentParser(description="ESM-2 LoRA Fine-tuning")
+    
+    # 路径参数
+    parser.add_argument("--train_path", type=str, required=True, help="Path to training FASTA")
+    parser.add_argument("--val_path", type=str, required=True, help="Path to validation FASTA")
+    parser.add_argument("--output_dir", type=str, default="./results/model", help="Output directory")
+    parser.add_argument("--log_dir", type=str, default="./results/logs", help="Log directory")
+    parser.add_argument("--cache_dir", type=str, default="./model_cache", help="HuggingFace cache")
+    
+    # 模型参数
+    parser.add_argument("--model_name", type=str, default="facebook/esm2_t33_650M_UR50D")
+    parser.add_argument("--max_length", type=int, default=1024, help="Max sequence length")
+    
+    # 训练参数
+    parser.add_argument("--batch_size", type=int, default=8)
+    parser.add_argument("--grad_accum", type=int, default=1)
+    parser.add_argument("--epochs", type=int, default=10)
+    parser.add_argument("--learning_rate", type=float, default=5e-5)
+    
+    # LoRA 参数
+    parser.add_argument("--lora_rank", type=int, default=8)
+    parser.add_argument("--lora_alpha", type=int, default=32)
+    parser.add_argument("--lora_dropout", type=float, default=0.05)
+
+    return parser.parse_args()
+
+if __name__ == "__main__":
+    # 1. 获取参数
+    args = parse_args()
+    
+    # 2. 实例化训练器
+    trainer = BioTrainer(args)
+    
+    # 3. 加载数据
+    trainer.load_datasets()
+    
+    # 4. 准备模型
+    trainer.setup_model()
+    
+    # 5. 开始训练
+    trainer.train()

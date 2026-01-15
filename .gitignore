@@ -1,21 +1,115 @@
-# 排除模型和数据文件
+# ============================================
+# 只上传代码和文档，忽略其他所有内容
+# ============================================
+
+# ===== 数据文件 =====
+# CSV 数据
+*.csv
+# FASTA 序列文件
+*.fasta
+*.fa
+*.faa
+*.fna
+# 其他数据格式
+*.tsv
+*.txt
+*.dat
+*.clstr
+# 数据目录
+data/
+dataset/
+*/data/
+*/dataset/
+
+# ===== 模型文件 =====
+# 模型权重
 *.bin
 *.pt
 *.pth
 *.h5
 *.ckpt
-*.lock
-*.json
-dataset/
+*.safetensors
+*.pkl
+*.pickle
+# 模型目录
+model/
+models/
+*/model/
+*/models/
+models--*/
+paper_model/
+*.faiss
 
-# 排除缓存和环境
+# ===== 结果和输出 =====
+results/
+output/
+outputs/
+*/results/
+*/output/
+*_predictions.csv
+test_predictions.csv
+
+# ===== 日志文件 =====
+logs/
+log/
+*.log
+*/log/
+*/logs/
+
+# ===== Python 缓存 =====
 __pycache__/
-*.cache
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.cache/
+
+# ===== 环境配置 =====
 venv/
 env/
+.venv/
+.env
+*.lock
+conda/
+.conda/
 
-# 其他不需要跟踪的文件
-logs/
-output/
-logs/
-model/
+# ===== Jupyter Notebook =====
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/
+
+# ===== IDE 配置 =====
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ===== 其他临时文件 =====
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# ============================================
+# 保留文件（代码和文档）
+# ============================================
+# Python 代码文件
+!*.py
+# Jupyter Notebook
+!*.ipynb
+# 文档文件
+!*.md
+!README.md
+# Shell 脚本
+!*.sh
+# YAML 配置（如环境配置文件）
+!*.yaml
+!*.yml
+# 项目配置
+!requirements.txt

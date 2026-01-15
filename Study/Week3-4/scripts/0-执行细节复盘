@@ -1,0 +1,124 @@
+1 lora微调代码回忆录
+input：序列文件
+output：微调好的模型
+
+# ================= 1. 数据处理 =================
+def 序列处理(序列文件):
+    #output：seq和id的字典
+    for record in SeqIO.parse():
+        seq = str(record.seq)
+        if "POS" in record.id:
+            id.append(record.id)
+        elif "NEG" in record.id:
+            id.append(record.id)
+        else:
+            id.append(record.id)
+    return {"seq":seq,"id":id}
+
+def token(example):
+    tokenizer(exapmle["seq"],)
+
+train = 序列处理()
+val = 序列处理()
+
+train_id = token.map(token,batched=True)
+val_id = token.map(token,batched=True)
+
+#序列id以及提取需要的列
+train_id = train_id.rename_column()
+.set_format("",column=[])
+
+loraconfig = LoraConfig(
+    r=,
+    ...
+)
+
+# ================= 2. 模型与 LoRA 配置 =================
+model = esm.from_pretrained(,num,cache_dir)
+lora_config = LoraConfig(
+    r=,
+    ...
+)
+
+model = get_peft_model(model,lora_config)
+model.print_trainable_parameters()
+
+# ================= 3. 训练模型 =================
+def 测试结果():
+    logits,labels = eval_pred
+    predication = np.argmax(logits,axis=-1)
+    return{四个指标}
+
+#超参数
+training_args = TrainingArguments()
+
+data_collator = DataCollatorWitchPadding(tokenizer=tokenizer)
+
+trainer = Trainer()
+trainer.train()
+
+trainer.save_model(path)
+
+
+2 测试结果
+
+# ================= 0. 配置 =================
+def get_args():
+    parser = argparse.Argment(
+        desc=,
+        formatter_class=argparse.Arg
+    )
+    parser.add_argment(
+        '',
+        required=True,
+        default=""
+    )
+    return parser.parse_args()
+
+# ================= 1. 数据处理 =================
+class data_processing(Dataset):
+    def __init__(self,fasta,tokenizer,max_len=1024):
+        #数据处理为 字典
+        数据处理seq和labels
+    def __len__(self):
+        return len(self.seq)
+    def __getitem__(self,idx):
+        seq = self.sequences[idx]
+
+        encoding = tokenizer(
+            seq,
+            padding,
+            max_len=,
+            return_tensors="pt"
+        )
+        return {
+            "input_ids":encoding["input_ids"].flatten()
+            ...
+        }
+
+# ================= 2. load model =================
+def main():
+    args = get_args() #get_arg函数
+    
+    device = torch.device("cuda" if )
+
+    #输出目录
+    output = arg.output
+
+    #加载token 模型和lora微调
+    token = esm.from_pre
+    base_model = esm.from_pre()
+    model = PeftModel.from_pretrained(base_model,arg.lora_model)
+
+    # 数据处理
+    test_dataset = ProteinDataset(args.input_fasta,tokenizer,max_len=arg.max_len)
+    test_loader = DataLoader(test_dataset,batch_size=args.batch_size,shuffle=False)
+    #开始预测
+
+3 
+
+3 AI 
+我在运行时发现两个问题，1 能否按照epoch进行模型保存？万一电脑关机之前跑的都浪费了。然后下次跑你可以接着跑。2 能否把结果以曲线的图表给我，这样我可以看出来训练的情况？同时统模型训练开始到结束的时间。
+
+我有一些真实的样本数据集，让模型判断。正负数据比值为：17,410正：90负。
+想让模型给我验证下，同时，想看最后一层的嵌入矩阵注意情况的可视化，看是否注意到正样本的关键信息
