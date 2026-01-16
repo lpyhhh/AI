@@ -208,6 +208,7 @@ EOF
 # 2 begging model training
 ## 3.1 ESM-1b embedding
 python ${SCRIPTS_DIR}/3-lora.py > ./log/lora_training.log 2>&1
+#trainable params: 3,669,762 || all params: 654,712,985 || trainable%: 0.5605
 python ${SCRIPTS_DIR}/0mail.py
 
 
