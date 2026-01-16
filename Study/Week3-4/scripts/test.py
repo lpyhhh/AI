@@ -250,7 +250,7 @@ def parse_args():
     # 训练参数
     parser.add_argument("--batch_size", type=int, default=8)
     parser.add_argument("--grad_accum", type=int, default=1)
-    parser.add_argument("--epochs", type=int, default=10)
+    parser.add_argument("--epochs", type=int, default=6)
     parser.add_argument("--learning_rate", type=float, default=5e-5)
     
     # LoRA 参数
@@ -278,7 +278,7 @@ python3 test.py \
 --max_length 1024 \
 --batch_size 8 \
 --grad_accum 1 \
---epochs 10 \
+--epochs 6 \
 --learning_rate 5e-5 \
 --lora_rank 8 \
 --lora_alpha 32 \

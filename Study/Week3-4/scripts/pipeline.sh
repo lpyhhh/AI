@@ -207,11 +207,37 @@ EOF
 
 # 2 begging model training
 ## 3.1 ESM-1b embedding
-python ${SCRIPTS_DIR}/3-lora.py > ./log/lora_training.log 2>&1
+python 3-lora.py > ./log/lora_training.log 2>&1
+python3 test.py \
+--train_path ../results/data/input/train.fasta \
+--val_path ../results/data/input/val.fasta \
+--output_dir ../results/model \
+--log_dir ../results/logs \
+--model_name facebook/esm2_t33_650M_UR50D \
+--max_length 1024 \
+--batch_size 8 \
+--grad_accum 1 \
+--epochs 10 \
+--learning_rate 5e-5 \
+--lora_rank 8 \
+--lora_alpha 32 \
+--lora_dropout 0.05 > ../results/logs/lora_training.log 2>&1
 #trainable params: 3,669,762 || all params: 654,712,985 || trainable%: 0.5605
-python ${SCRIPTS_DIR}/0mail.py
-
-
+python 0mail.py
+<<EOF
+{'eval_loss': 0.1050809845328331, 'eval_accuracy': 0.9869281045751634, 'eval_f1': 0.9865369592165963, 'eval_mcc': 0.8684903947992905, 'eval_runtime': 22.4261, 'eval_samples_per_second': 68.224, 'eval_steps_per_second': 8.561, 'epoch': 10.0}
+{'train_runtime': 27015.6637, 'train_samples_per_second': 26.903, 'train_steps_per_second': 3.363, 'train_loss': 0.01569616898989431, 'epoch': 10.0}
+EOF
+python integrated_analysis.py \
+    --mode full \
+    --input_fasta ../results/data/input/test.fasta \
+    --lora_model ../results/model/final_lora_model \
+    --output_dir ../results/final_output \
+    --base_model facebook/esm2_t33_650M_UR50D \
+    --batch_size 4 \
+    --max_length 1024 \
+    --num_attention_plots 10 \
+    --tsne_samples 4000 > ../results/logs/final_output.log 2>&1
 
 
 
