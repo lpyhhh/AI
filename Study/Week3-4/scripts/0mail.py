@@ -29,7 +29,7 @@ def send_email(subject, body, to_email, from_email, smtp_server, smtp_port, smtp
 if __name__ == "__main__":
     # 示例配置
     subject = "程序运行完成通知"
-    body = "你的 Python 程序已运行完成！"
+    body = "AI模型预测完成！"
     to_email = "496276044@qq.com"
     from_email = "496276044@qq.com"
     smtp_server = "smtp.qq.com"

@@ -407,7 +407,7 @@ class ModelAnalyzer:
         
         # t-SNE降维
         print("[t-SNE] Computing t-SNE (this may take a while)...")
-        tsne = TSNE(n_components=2, verbose=0, perplexity=30, n_iter=1000)
+        tsne = TSNE(n_components=2, verbose=0, perplexity=30, max_iter=1000)
         tsne_results = tsne.fit_transform(pca_result)
         
         # 绘图
@@ -662,7 +662,7 @@ python integrated_analysis.py \
     --lora_model ../results/model/final_lora_model \
     --output_dir ../results/final_output \
     --base_model facebook/esm2_t33_650M_UR50D \
-    --batch_size 32 \
+    --batch_size 16 \
     --max_length 1024 \
     --num_attention_plots 10 \
     --tsne_samples 4000 > ../results/logs/final_output.log 2>&1
