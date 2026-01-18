@@ -9,7 +9,7 @@ ${DATA_DIR}/rep/rep.fa
 ${DATA_DIR}/proteins_m_M.fasta
 ncbi下载所有rep序列
 ${DATA_DIR}/proteins_base_substituted.fasta ${DATA_DIR}/proteins_base_substituted.id
-${DATA_DIR}/true/cress_lens.fasta 限定只有cress，有极高的假阳性，可以用来做最后新病毒发现的测试集
+${DATA_DIR}/true/cress_lens.fasta
 
 验证集：ICTV数据库中的rep蛋白序列
 ${RESULTS_DIR}/data/mmseq_rep_seq.fasta 17,410：1307 /home/ec2-user/project/results/test/true_verify/data/true_verify.fasta
@@ -31,9 +31,9 @@ ${RESULTS_DIR}/data/negative/pep.out.fa.40 65,544
 EOF
 ########################## 1.0 version
 ## 数据目录
-DATA_DIR="/home/lpy/hdd/myself/AI/data"
-SCRIPTS_DIR="/home/lpy/hdd/myself/AI/scripts"
-RESULTS_DIR="/home/lpy/hdd/myself/AI/results"
+DATA_DIR="/home/ec2-user/project/AI/Study/Week3-4/data"
+SCRIPTS_DIR="/home/ec2-user/project/AI/Study/Week3-4/scripts"
+RESULTS_DIR="/home/ec2-user/project/AI/Study/Week3-4/results"
 THREADS=192
 # 1 数据集划分
 ## 1.1 正样本 ${DATA_DIR}/true/rep.90.fa
@@ -70,7 +70,7 @@ EOF
 ${DATA_DIR}/false/rep_false.90.fa
 负样本2
 EOF
-seqkit seq -n ${DATA_DIR}/proteins_base_substituted.fasta > ${DATA_DIR}/proteins_base_substituted.id
+seqkit seq -n ${DATA_DIR}/proteins_base_substituted.fasta > ${DATA_DIR}/proteins_base_substituted.id # 所有预测蛋白id
 ### 负样本 ${DATA_DIR}/false/rep_false.fa
 #identify [70,] [30,70] [,30]，保留70以下所有的有相似性的序列，同时e值大于80的所有行
 diamond makedb --in ${DATA_DIR}/true/rep.90.fa --db ${DATA_DIR}/true/rep.90
@@ -96,7 +96,7 @@ python3 ${SCRIPTS_DIR}/列匹配.py \
   -b ${DATA_DIR}/false/proteins_false-70-_1.tsv \
   -o ${DATA_DIR}/false/proteins_false-70-_e.tsv \
   -v -i
-#基于阈值过滤 + 去重（De-duplication）
+#基于阈值过滤 + 去重（De-duplication） 删除中不溜的数据，用作模型训练后的测试集
 python3 ${SCRIPTS_DIR}/diamond筛选.py \
         -i ${DATA_DIR}/false/proteins_false-70-_e.tsv \
         -o ${DATA_DIR}/false/proteins_false-70-_true-0.tsv \
@@ -109,6 +109,13 @@ seqkit grep \
   ${DATA_DIR}/proteins_base_substituted.fasta \
   > ${DATA_DIR}/false/rep_false.fa
 #grep 'QZT32273.1' ${DATA_DIR}/false/proteins_false-70-_e.tsv
+
+#模型训练后的测试集
+awk -F'\t' '{print $1}' ${DATA_DIR}/false/proteins_false-70-_验证集.tsv | sort | uniq > ${DATA_DIR}/false/model_final_test.id
+seqkit grep \
+  -f <(cut -d ' ' -f 1 ${DATA_DIR}/false/model_final_test.id) \
+  ${DATA_DIR}/proteins_base_substituted.fasta \
+  > ${DATA_DIR}/false/model_final_test.id.fa
 <<EOF
 (bio) [ec2-user@ip-172-31-42-27 project]$ seqkit stat ${DATA_DIR}/false/rep_false.fa
 file                               format  type     num_seqs    sum_len  min_len  avg_len  max_len
@@ -140,7 +147,7 @@ seqkit grep \
 <<EOF
 (BIO) lpy@administrator-Super-Server:~/hdd/myself/AI$ seqkit stat ${DATA_DIR}/false/2/rep_false-2.fa
 file                                                 format  type      num_seqs      sum_len  min_len  avg_len  max_len
-/home/lpy/hdd/myself/AI/data/false/2/rep_false-2.fa  FASTA   Protein  1,436,388  522,315,800       60    363.6    1,024
+/home/ec2-user/project/AI/Study/Week3-4/data/false/2/rep_false-2.fa  FASTA   Protein  1,436,388  522,315,800       60    363.6    1,024
 EOF
 #### 聚类负样本后，检查ID信息 是否有cress病毒相关
 cd-hit -i ${DATA_DIR}/false/2/rep_false-2.fa \
@@ -166,13 +173,13 @@ seqkit grep \
 <<EOF
 (BIO) lpy@administrator-Super-Server:~/hdd/myself/AI$ seqkit stat ${DATA_DIR}/false/false-2.fa
 file                                           format  type     num_seqs     sum_len  min_len  avg_len  max_len
-/home/lpy/hdd/myself/AI/data/false/false-2.fa  FASTA   Protein    65,196  25,148,910       65    385.7    1,024
+/home/ec2-user/project/AI/Study/Week3-4/data/false/false-2.fa  FASTA   Protein    65,196  25,148,910       65    385.7    1,024
 EOF
 cat ${DATA_DIR}/false/false-2.fa ${DATA_DIR}/false/rep_false.fa > ${DATA_DIR}/false/false.fa
 <<EOF
 (BIO) lpy@administrator-Super-Server:~/hdd/myself/AI$ seqkit stat ${DATA_DIR}/false/false.fa
 file                                         format  type     num_seqs     sum_len  min_len  avg_len  max_len
-/home/lpy/hdd/myself/AI/data/false/false.fa  FASTA   Protein    72,079  27,130,808       62    376.4    1,024
+/home/ec2-user/project/AI/Study/Week3-4/data/false/false.fa  FASTA   Protein    72,079  27,130,808       62    376.4    1,024
 EOF
 
 ## 1.3 划分数据集 (Train/Test Split)
@@ -245,14 +252,27 @@ python 0mail.py
 EOF
 python integrated_analysis.py \
     --mode full \
-    --input_fasta ../results/data/input/test.fasta \
+    --input_fasta ${DATA_DIR}/true/proteins_true.fa \
     --lora_model ../results/model/final_lora_model \
-    --output_dir ../results/final_output \
+    --output_dir ../results/final_test \
     --base_model facebook/esm2_t33_650M_UR50D \
     --batch_size 4 \
     --max_length 1024 \
     --num_attention_plots 10 \
     --tsne_samples 4000 > ../results/logs/final_output.log 2>&1
+
+# 高假阳性测试集
+python integrated_analysis.py \
+    --mode full \
+    --input_fasta ${DATA_DIR}/false/model_final_test.id.fa \
+    --lora_model ../results/model/final_lora_model \
+    --output_dir ../results/final_model_final_test.id \
+    --base_model facebook/esm2_t33_650M_UR50D \
+    --batch_size 4 \
+    --max_length 1024 \
+    --num_attention_plots 10 \
+    --tsne_samples 4000 > ../results/logs/model_final_test.id.log 2>&1
+
 <<EOF
 训练：模型损失
 模型：概率分布直方图，嵌入向量可视化，标签阈值
