@@ -222,6 +222,21 @@ python3 test.py \
 --lora_rank 8 \
 --lora_alpha 32 \
 --lora_dropout 0.05 > ../results/logs/lora_training.log 2>&1
+python 3-lora.py > ./log/lora_training.log 2>&1
+python3 test.py \
+--train_path ../results/data/input/train.fasta \
+--val_path ../results/data/input/val.fasta \
+--output_dir ../results/model \
+--log_dir ../results/logs \
+--model_name facebook/esm2_t33_650M_UR50D \
+--max_length 1024 \
+--batch_size 8 \
+--grad_accum 1 \
+--epochs 10 \
+--learning_rate 5e-5 \
+--lora_rank 8 \
+--lora_alpha 32 \
+--lora_dropout 0.05 > ../results/logs/lora_training.log 2>&1
 #trainable params: 3,669,762 || all params: 654,712,985 || trainable%: 0.5605
 python 0mail.py
 <<EOF
