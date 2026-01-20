@@ -185,7 +185,7 @@ EOF
 ## 1.3 划分数据集 (Train/Test Split)
 ### 碱基替换后的数据集
 python ${SCRIPTS_DIR}/content.py \
-    -i ${DATA_DIR}/true/rep.90.fa \
+    -i ${DATA_DIR}/true/rep_true.fa \
     -o ${DATA_DIR}/true/rep.90_ATCG.fa \
     --strict
 python ${SCRIPTS_DIR}/content.py \
@@ -199,16 +199,16 @@ python3 ${SCRIPTS_DIR}/data_set.py \
         --pos ${DATA_DIR}/true/rep.90_ATCG.fa \
         --neg ${DATA_DIR}/false/false_ATCG.fa \
         --outdir ${RESULTS_DIR}/data/input \
-        --split-ratio 0.95 0.02 0.03
+        --split-ratio 0.90 0.07 0.03
 <<EOF
 ========================================
 FINAL DATASET REPORT (Random Split)
 ========================================
 Set        Total      Pos        Neg        Pos/Neg Ratio
 -------------------------------------------------------
-TRAIN      72681      4239       68442      0.06
-VAL        1530       84         1446       0.06
-TEST       2296       105        2191       0.05
+TRAIN      101796     37030      64766      0.57
+VAL        7917       2794       5123       0.55
+TEST       3394       1204       2190       0.55
 ========================================
 EOF
 
@@ -222,29 +222,15 @@ python3 test.py \
 --log_dir ../results/logs \
 --model_name facebook/esm2_t33_650M_UR50D \
 --max_length 1024 \
---batch_size 8 \
+--batch_size 16 \
 --grad_accum 1 \
---epochs 10 \
+--epochs 6 \
 --learning_rate 5e-5 \
 --lora_rank 8 \
 --lora_alpha 32 \
 --lora_dropout 0.05 > ../results/logs/lora_training.log 2>&1
-python 3-lora.py > ./log/lora_training.log 2>&1
-python3 test.py \
---train_path ../results/data/input/train.fasta \
---val_path ../results/data/input/val.fasta \
---output_dir ../results/model \
---log_dir ../results/logs \
---model_name facebook/esm2_t33_650M_UR50D \
---max_length 1024 \
---batch_size 8 \
---grad_accum 1 \
---epochs 10 \
---learning_rate 5e-5 \
---lora_rank 8 \
---lora_alpha 32 \
---lora_dropout 0.05 > ../results/logs/lora_training.log 2>&1
-#trainable params: 3,669,762 || all params: 654,712,985 || trainable%: 0.5605
+
+aws s3 sync /home/ec2-user/project/ s3:/ginger-ohio/Student/LPY/new_project/ -only-show-errors
 python 0mail.py
 <<EOF
 {'eval_loss': 0.1050809845328331, 'eval_accuracy': 0.9869281045751634, 'eval_f1': 0.9865369592165963, 'eval_mcc': 0.8684903947992905, 'eval_runtime': 22.4261, 'eval_samples_per_second': 68.224, 'eval_steps_per_second': 8.561, 'epoch': 10.0}
@@ -283,12 +269,12 @@ EOF
 问题：
 1 训练损失
 2 真实数据有误判 嵌入向量可视化发现未分开，正样本阈值太低
-3 
 
 1 序列解决：
 1.1 掩盖10%左右的信息，让模型去学习
 1.2 hmm找motif位置，裁剪
 1.3 正样本序列太少？？？
+1.4 突变序列扩增正样本数据
 
 2 模型解决：
 2.1 聚焦损失函数 CrossEntropy。改用 Focal Loss，强迫模型学习预判错的的信息
@@ -297,9 +283,29 @@ EOF
 三维结构
 EOF
 
-
-
-
+#解决方案：1.2 hmm找保守基因位置，裁剪序列； 1.4 突变序列扩增正样本数据； 1.1 掩盖信息 2.1 改用 Focal Loss
+## 1.2 位点和保守序列基本上相同
+muscle -super5 ${DATA_DIR}/rep/rep.fa -output ${DATA_DIR}/rep/rep.fa.aln
+hmmbuild ${DATA_DIR}/rep/rep.fa.aln.hmm ${DATA_DIR}/rep/rep.fa.aln
+hmmpress -f ${DATA_DIR}/rep/rep.fa.aln.hmm
+hmmsearch \
+    -E 10 --domE 10 --cpu 4 --noali --acc --notextw \
+    --domtblout "${RESULTS_DIR}/data/positive/hmm/rep.hmmsearch" \
+    "${DATA_DIR}/rep/rep.fa.aln.hmm" \
+    "${DATA_DIR}/true/proteins_true.fa"
+## 1.4 突变序列扩增正样本数据
+python3 ${SCRIPTS_DIR}/突变.py \
+      -i ${DATA_DIR}/true/proteins_true.fa \
+      -o ${DATA_DIR}/true/proteins_true_mutated.fasta \
+      -n 5 \
+      -r 0.03 \
+      --seed 42
+cat ${DATA_DIR}/true/rep.90.fa ${DATA_DIR}/true/proteins_true_mutated.fasta > ${DATA_DIR}/true/rep_true.fa
+<<EOF
+seqkit stat ${DATA_DIR}/true/rep_true.fa
+file                                                           format  type     num_seqs     sum_len  min_len  avg_len  max_len
+/home/ec2-user/project/AI/Study/Week3-4/data/true/rep_true.fa  FASTA   Protein    41,028  10,961,968       60    267.2      615
+EOF
 
 ########################## 0.1 version
 # 1 数据处理
